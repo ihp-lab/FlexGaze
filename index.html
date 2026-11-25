@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlexGaze: Weakly Supervised Gaze Estimation at Scale</title>
+  <meta name="description" content="FlexGaze is a family of 3D gaze estimators pretrained on about 3.24 million automatically generated gaze labels from in-the-wild images. It predicts gaze from a head crop alone, including profile and rear views.">
+  <meta name="author" content="Zongjian Li, Mohammad Soleymani">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="FlexGaze: Weakly Supervised Gaze Estimation at Scale">
+  <meta property="og:description" content="3D gaze estimation pretrained on 3.24M generated labels from in-the-wild images. Head crop in, gaze out: no face detection or head pose needed.">
+  <meta property="og:url" content="https://ihp-lab.github.io/FlexGaze/">
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <!-- Marks scripting as available and applies a remembered theme before the first frame. -->
+  <script>document.documentElement.classList.add("js");try{var t=localStorage.getItem("flexgaze-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+</head>
+<body>
+
+<a class="skip-link" href="#content">Skip to content</a>
+
+<header class="page-header">
+  <div class="column">
+    <div class="header-title-row">
+      <h1 class="header-title">FlexGaze<span class="sr-only">: Weakly Supervised Gaze Estimation at Scale</span></h1>
+      <button class="button button-small theme-switch needs-script" type="button" id="theme-switch" aria-label="Color theme: system. Switch to light.">
+        <svg class="theme-switch-icon" data-mode="system" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2a6 6 0 0 0 0 12Z" fill="currentColor"/></svg>
+        <svg class="theme-switch-icon" data-mode="light" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.9" fill="currentColor"/><path d="M8 1v1.7M8 13.3V15M1 8h1.7M13.3 8H15M3.05 3.05l1.2 1.2M11.75 11.75l1.2 1.2M3.05 12.95l1.2-1.2M11.75 4.25l1.2-1.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <svg class="theme-switch-icon" data-mode="dark" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.6 10.1A6 6 0 0 1 5.9 2.4a6 6 0 1 0 7.7 7.7Z" fill="currentColor"/></svg>
+        <span class="theme-switch-label" data-mode="system">System</span>
+        <span class="theme-switch-label" data-mode="light">Light</span>
+        <span class="theme-switch-label" data-mode="dark">Dark</span>
+      </button>
+    </div>
+    <p class="header-subtitle" aria-hidden="true">Weakly Supervised Gaze Estimation at Scale</p>
+
+    <div class="header-byline">
+      <p class="header-authors"><span>Zongjian Li</span><span class="sr-only">, </span><span>Mohammad Soleymani</span></p>
+      <p class="header-affiliation">USC Institute for Creative Technologies</p>
+    </div>
+
+    <ul class="header-links" aria-label="Resources">
+      <li>
+        <a class="button header-link" href="https://arxiv.org/abs/2611.30012">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 2.75h6.5L15.25 6.5V17.25H5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M11.25 2.75V6.75h4M7.75 10h4.5M7.75 13h4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Paper
+        </a>
+      </li>
+      <li>
+        <a class="button header-link" href="https://github.com/ihp-lab/FlexGaze">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5.5 2.75 10 7 14.5M13 5.5l4.25 4.5L13 14.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Code
+        </a>
+      </li>
+      <li>
+        <a class="button header-link" href="https://huggingface.co/datasets/ZongjianLi/FlexGaze">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><ellipse cx="10" cy="4.75" rx="6" ry="2.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4 4.75v10.5c0 1.24 2.69 2.25 6 2.25s6-1 6-2.25V4.75M4 10c0 1.24 2.69 2.25 6 2.25s6-1 6-2.25" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          Dataset
+        </a>
+      </li>
+      <li>
+        <a class="button header-link" href="https://huggingface.co/ZongjianLi/FlexGaze">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5 16.5 6v8L10 17.5 3.5 14V6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M3.75 6.15 10 9.6l6.25-3.45M10 9.6v7.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          Weights
+        </a>
+      </li>
+    </ul>
+  </div>
+</header>
+
+<main id="content">
+  <div class="column">
+
+    <!-- "overview" is the public anchor of the teaser. -->
+    <figure class="teaser" id="overview">
+      <div class="panel teaser-plate">
+        <!-- The teaser is inserted inline here so the page's color variables reach into it. -->
+        <script src="assets/data/teaser-svg.js"></script>
+      </div>
+      <figcaption>
+        <span class="caption-label">Figure 1.</span>
+        Overview of FlexGaze. Top left: example predictions with 3D gaze directions projected onto the image plane.
+        Top right: parameter count versus mean angular error on the face-detected subset of Gaze360.
+        Bottom: the automatic label generation pipeline and model training.
+      </figcaption>
+    </figure>
+
+    <section class="section" id="abstract" aria-labelledby="abstract-title">
+      <h2 class="section-title" id="abstract-title">Abstract</h2>
+      <p class="section-text">
+        Most gaze estimation models are trained on data collected using specialized equipment. The limited diversity of subjects, scenes, and head poses in these datasets hinders generalization to new conditions. We present FlexGaze, a family of 3D gaze estimators pretrained with weak supervision from gaze labels (pseudo-labels) automatically generated from in-the-wild images. We use off-the-shelf models to predict 2D gaze targets and scene depth, then combine these predictions to generate 3D gaze labels for approximately 3.24 million head instances. At inference, FlexGaze predicts gaze from a head crop alone and can handle profile and rear views without requiring face detection or head pose estimation. We use data augmentation during training to improve robustness to variations in crop position and scale. Pretrained using only these generated gaze labels, FlexGaze generalizes to unseen benchmarks. After supervised fine-tuning on public gaze datasets, we evaluate FlexGaze on eight benchmarks under a unified evaluation protocol. Our models match or outperform publicly available gaze estimators with several times as many parameters on most benchmarks. We release our dataset of generated gaze labels, all trained models, and code via <a href="https://github.com/ihp-lab/FlexGaze">github.com/ihp-lab/FlexGaze</a>.
+      </p>
+    </section>
+
+    <section class="section" id="demo" aria-labelledby="demo-title">
+      <h2 class="section-title" id="demo-title">Live demo</h2>
+      <p class="section-text">Coming soon.</p>
+    </section>
+
+    <section class="section" id="results" aria-labelledby="results-title">
+      <h2 class="section-title" id="results-title">Results</h2>
+
+      <h3 class="section-subtitle">Comparison with publicly available gaze estimators</h3>
+      <figure class="section-figure" id="results-table">
+        <div class="panel">
+          <div class="scroll-x" data-scroll-label="Results table, scrollable">
+            <table class="results-table" aria-labelledby="results-table-caption">
+              <thead>
+                <tr>
+                  <th scope="col">Method</th>
+                  <th scope="col" class="results-params">Params</th>
+                  <th scope="col" class="results-preproc" aria-describedby="results-note-preproc">Preproc.</th>
+                  <th scope="col" class="results-score"><span class="results-head">Gaze360<span class="results-head-note">Face (88%)</span></span></th>
+                  <th scope="col" class="results-score"><span class="results-head">XGaze</span></th>
+                  <th scope="col" class="results-score"><span class="results-head">Gaze<br>Capture</span></th>
+                  <th scope="col" class="results-score"><span class="results-head">MPII<br>FaceGaze</span></th>
+                  <th scope="col" class="results-score"><span class="results-head">EYEDIAP</span></th>
+                  <th scope="col" class="results-score"><span class="results-head">Columbia</span></th>
+                  <th scope="col" class="results-score"><span class="results-head">RT-GENE<span class="results-head-note">Original</span></span></th>
+                  <th scope="col" class="results-score"><span class="results-head">GFIE<span class="results-head-note">Face (86%)</span></span></th>
+                </tr>
+              </thead>
+            <tbody>
+              <tr class="results-group"><th colspan="11" scope="rowgroup">Oracle baseline with constant predictions</th></tr>
+              <tr>
+                <th scope="row">Mean direction</th>
+                <td class="results-params">&mdash;</td>
+                <td class="results-preproc">&mdash;</td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">51</span><span class="results-mean-fraction">.48</span></span><span class="results-sd"></span></span><span class="sr-only">51.48</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">42</span><span class="results-mean-fraction">.64</span></span><span class="results-sd"></span></span><span class="sr-only">42.64</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">7</span><span class="results-mean-fraction">.78</span></span><span class="results-sd"></span></span><span class="sr-only">7.78</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">11</span><span class="results-mean-fraction">.75</span></span><span class="results-sd"></span></span><span class="sr-only">11.75</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">23</span><span class="results-mean-fraction">.83</span></span><span class="results-sd"></span></span><span class="sr-only">23.83</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">12</span><span class="results-mean-fraction">.05</span></span><span class="results-sd"></span></span><span class="sr-only">12.05</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">27</span><span class="results-mean-fraction">.18</span></span><span class="results-sd"></span></span><span class="sr-only">27.18</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">36</span><span class="results-mean-fraction">.89</span></span><span class="results-sd"></span></span><span class="sr-only">36.89</span></td>
+              </tr>
+            </tbody>
+            <tbody>
+              <tr class="results-group"><th colspan="11" scope="rowgroup">Baselines with head-crop input</th></tr>
+              <tr>
+                <th scope="row">GaT + ST-WSGE</th>
+                <td class="results-params"><span class="results-params-value">27.9M</span></td>
+                <td class="results-preproc">H</td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">11</span><span class="results-mean-fraction">.90</span></span><span class="results-sd"></span></span><span class="sr-only">11.90, in-domain</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">14</span><span class="results-mean-fraction">.36</span></span><span class="results-sd"></span></span><span class="sr-only">14.36</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">6</span><span class="results-mean-fraction">.95</span></span><span class="results-sd"></span></span><span class="sr-only">6.95</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">6</span><span class="results-mean-fraction">.79</span></span><span class="results-sd"></span></span><span class="sr-only">6.79</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">8</span><span class="results-mean-fraction">.56</span></span><span class="results-sd"></span></span><span class="sr-only">8.56</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">8</span><span class="results-mean-fraction">.07</span></span><span class="results-sd"></span></span><span class="sr-only">8.07</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">9</span><span class="results-mean-fraction">.54</span></span><span class="results-sd"></span></span><span class="sr-only">9.54</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">15</span><span class="results-mean-fraction">.06</span></span><span class="results-sd"></span></span><span class="sr-only">15.06</span></td>
+              </tr>
+            </tbody>
+            <tbody>
+              <tr class="results-group"><th colspan="11" scope="rowgroup">Baselines with face-crop input</th></tr>
+              <tr>
+                <th scope="row">L2CS-Net</th>
+                <td class="results-params"><span class="results-params-value">23.9M</span></td>
+                <td class="results-preproc">F</td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">16</span><span class="results-mean-fraction">.66</span></span><span class="results-sd"></span></span><span class="sr-only">16.66, in-domain</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">17</span><span class="results-mean-fraction">.52</span></span><span class="results-sd"></span></span><span class="sr-only">17.52</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">10</span><span class="results-mean-fraction">.20</span></span><span class="results-sd"></span></span><span class="sr-only">10.20</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">9</span><span class="results-mean-fraction">.01</span></span><span class="results-sd"></span></span><span class="sr-only">9.01</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">11</span><span class="results-mean-fraction">.62</span></span><span class="results-sd"></span></span><span class="sr-only">11.62</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">8</span><span class="results-mean-fraction">.20</span></span><span class="results-sd"></span></span><span class="sr-only">8.20</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">30</span><span class="results-mean-fraction">.22</span></span><span class="results-sd"></span></span><span class="sr-only">30.22</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">38</span><span class="results-mean-fraction">.32</span></span><span class="results-sd"></span></span><span class="sr-only">38.32</span></td>
+              </tr>
+              <tr>
+                <th scope="row">PureGaze</th>
+                <td class="results-params"><span class="results-params-value">23.5M</span></td>
+                <td class="results-preproc">F,L,P,K</td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">33</span><span class="results-mean-fraction">.32</span></span><span class="results-sd"></span></span><span class="sr-only">33.32</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">4</span><span class="results-mean-fraction">.62</span></span><span class="results-sd"></span></span><span class="sr-only">4.62, in-domain</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">7</span><span class="results-mean-fraction">.69</span></span><span class="results-sd"></span></span><span class="sr-only">7.69</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">9</span><span class="results-mean-fraction">.21</span></span><span class="results-sd"></span></span><span class="sr-only">9.21</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">8</span><span class="results-mean-fraction">.31</span></span><span class="results-sd"></span></span><span class="sr-only">8.31</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">7</span><span class="results-mean-fraction">.65</span></span><span class="results-sd"></span></span><span class="sr-only">7.65</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">18</span><span class="results-mean-fraction">.41</span></span><span class="results-sd"></span></span><span class="sr-only">18.41</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">57</span><span class="results-mean-fraction">.79</span></span><span class="results-sd"></span></span><span class="sr-only">57.79</span></td>
+              </tr>
+              <tr>
+                <th scope="row">XGaze baseline</th>
+                <td class="results-params"><span class="results-params-value">23.5M</span></td>
+                <td class="results-preproc">F,L,P,K</td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">34</span><span class="results-mean-fraction">.97</span></span><span class="results-sd"></span></span><span class="sr-only">34.97</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">4</span><span class="results-mean-fraction">.44</span></span><span class="results-sd"></span></span><span class="sr-only">4.44, in-domain</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">8</span><span class="results-mean-fraction">.50</span></span><span class="results-sd"></span></span><span class="sr-only">8.50</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">9</span><span class="results-mean-fraction">.07</span></span><span class="results-sd"></span></span><span class="sr-only">9.07</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">10</span><span class="results-mean-fraction">.03</span></span><span class="results-sd"></span></span><span class="sr-only">10.03</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">9</span><span class="results-mean-fraction">.19</span></span><span class="results-sd"></span></span><span class="sr-only">9.19</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">17</span><span class="results-mean-fraction">.24</span></span><span class="results-sd"></span></span><span class="sr-only">17.24</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">60</span><span class="results-mean-fraction">.90</span></span><span class="results-sd"></span></span><span class="sr-only">60.90</span></td>
+              </tr>
+              <tr>
+                <th scope="row">GazeTR-Hybrid</th>
+                <td class="results-params"><span class="results-params-value">11.4M</span></td>
+                <td class="results-preproc">F,L,P,K</td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">34</span><span class="results-mean-fraction">.15</span></span><span class="results-sd"></span></span><span class="sr-only">34.15</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><b><span class="results-mean-whole">4</span><span class="results-mean-fraction">.29</span></b></span><span class="results-sd"></span></span><span class="sr-only">4.29 (best), in-domain</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">10</span><span class="results-mean-fraction">.66</span></span><span class="results-sd"></span></span><span class="sr-only">10.66</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">10</span><span class="results-mean-fraction">.06</span></span><span class="results-sd"></span></span><span class="sr-only">10.06</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">13</span><span class="results-mean-fraction">.07</span></span><span class="results-sd"></span></span><span class="sr-only">13.07</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">9</span><span class="results-mean-fraction">.53</span></span><span class="results-sd"></span></span><span class="sr-only">9.53</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">20</span><span class="results-mean-fraction">.15</span></span><span class="results-sd"></span></span><span class="sr-only">20.15</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">49</span><span class="results-mean-fraction">.43</span></span><span class="results-sd"></span></span><span class="sr-only">49.43</span></td>
+              </tr>
+              <tr>
+                <th scope="row">UniGaze-B</th>
+                <td class="results-params"><span class="results-params-value">85.8M</span></td>
+                <td class="results-preproc">F,L,P,K</td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">16</span><span class="results-mean-fraction">.19</span></span><span class="results-sd"></span></span><span class="sr-only">16.19, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.73</span></span><span class="results-sd"></span></span><span class="sr-only">5.73, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">3</span><span class="results-mean-fraction">.83</span></span><span class="results-sd"></span></span><span class="sr-only">3.83, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.80</span></span><span class="results-sd"></span></span><span class="sr-only">5.80, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.16</span></span><span class="results-sd"></span></span><span class="sr-only">5.16, in-domain</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">4</span><span class="results-mean-fraction">.56</span></span><span class="results-sd"></span></span><span class="sr-only">4.56</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">11</span><span class="results-mean-fraction">.00</span></span><span class="results-sd"></span></span><span class="sr-only">11.00</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">31</span><span class="results-mean-fraction">.96</span></span><span class="results-sd"></span></span><span class="sr-only">31.96</span></td>
+              </tr>
+              <tr>
+                <th scope="row">UniGaze-L</th>
+                <td class="results-params"><span class="results-params-value">303.3M</span></td>
+                <td class="results-preproc">F,L,P,K</td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">15</span><span class="results-mean-fraction">.77</span></span><span class="results-sd"></span></span><span class="sr-only">15.77, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.61</span></span><span class="results-sd"></span></span><span class="sr-only">5.61, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">3</span><span class="results-mean-fraction">.55</span></span><span class="results-sd"></span></span><span class="sr-only">3.55, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.30</span></span><span class="results-sd"></span></span><span class="sr-only">5.30, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">4</span><span class="results-mean-fraction">.98</span></span><span class="results-sd"></span></span><span class="sr-only">4.98, in-domain</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><b><span class="results-mean-whole">4</span><span class="results-mean-fraction">.22</span></b></span><span class="results-sd"></span></span><span class="sr-only">4.22 (best)</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">15</span><span class="results-mean-fraction">.97</span></span><span class="results-sd"></span></span><span class="sr-only">15.97</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">30</span><span class="results-mean-fraction">.47</span></span><span class="results-sd"></span></span><span class="sr-only">30.47</span></td>
+              </tr>
+              <tr>
+                <th scope="row">UniGaze-H</th>
+                <td class="results-params"><span class="results-params-value">630.8M</span></td>
+                <td class="results-preproc">F,L,P,K</td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">16</span><span class="results-mean-fraction">.12</span></span><span class="results-sd"></span></span><span class="sr-only">16.12, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.40</span></span><span class="results-sd"></span></span><span class="sr-only">5.40, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">3</span><span class="results-mean-fraction">.50</span></span><span class="results-sd"></span></span><span class="sr-only">3.50, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.09</span></span><span class="results-sd"></span></span><span class="sr-only">5.09, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><b><span class="results-mean-whole">4</span><span class="results-mean-fraction">.83</span></b></span><span class="results-sd"></span></span><span class="sr-only">4.83 (best), in-domain</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">4</span><span class="results-mean-fraction">.46</span></span><span class="results-sd"></span></span><span class="sr-only">4.46</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">26</span><span class="results-mean-fraction">.87</span></span><span class="results-sd"></span></span><span class="sr-only">26.87</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">30</span><span class="results-mean-fraction">.92</span></span><span class="results-sd"></span></span><span class="sr-only">30.92</span></td>
+              </tr>
+            </tbody>
+            <tbody>
+              <tr class="results-group"><th colspan="11" scope="rowgroup">Ours, head-crop input, fine-tuned (8 sets)</th></tr>
+              <tr>
+                <th scope="row">FlexGaze-S<span class="sr-only">, fine-tuned on 8 sets</span></th>
+                <td class="results-params"><span class="results-params-value">21.8M</span></td>
+                <td class="results-preproc">H,K</td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">11</span><span class="results-mean-fraction">.11</span></span><span class="results-sd">&plusmn;0.08</span></span><span class="sr-only">11.11 &plusmn; 0.08, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.97</span></span><span class="results-sd">&plusmn;0.04</span></span><span class="sr-only">5.97 &plusmn; 0.04, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">3</span><span class="results-mean-fraction">.68</span></span><span class="results-sd">&plusmn;0.03</span></span><span class="sr-only">3.68 &plusmn; 0.03, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.35</span></span><span class="results-sd">&plusmn;0.16</span></span><span class="sr-only">5.35 &plusmn; 0.16, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.86</span></span><span class="results-sd">&plusmn;0.10</span></span><span class="sr-only">5.86 &plusmn; 0.10, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.01</span></span><span class="results-sd">&plusmn;0.11</span></span><span class="sr-only">5.01 &plusmn; 0.11, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">6</span><span class="results-mean-fraction">.86</span></span><span class="results-sd">&plusmn;0.20</span></span><span class="sr-only">6.86 &plusmn; 0.20, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">12</span><span class="results-mean-fraction">.17</span></span><span class="results-sd">&plusmn;0.24</span></span><span class="sr-only">12.17 &plusmn; 0.24, in-domain</span></td>
+              </tr>
+              <tr>
+                <th scope="row">FlexGaze-B<span class="sr-only">, fine-tuned on 8 sets</span></th>
+                <td class="results-params"><span class="results-params-value">86.0M</span></td>
+                <td class="results-preproc">H,K</td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">10</span><span class="results-mean-fraction">.95</span></span><span class="results-sd">&plusmn;0.10</span></span><span class="sr-only">10.95 &plusmn; 0.10, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.31</span></span><span class="results-sd">&plusmn;0.06</span></span><span class="sr-only">5.31 &plusmn; 0.06, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><b><span class="results-mean-whole">3</span><span class="results-mean-fraction">.46</span></b></span><span class="results-sd">&plusmn;0.03</span></span><span class="sr-only">3.46 &plusmn; 0.03 (best), in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><b><span class="results-mean-whole">4</span><span class="results-mean-fraction">.92</span></b></span><span class="results-sd">&plusmn;0.25</span></span><span class="sr-only">4.92 &plusmn; 0.25 (best), in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.39</span></span><span class="results-sd">&plusmn;0.01</span></span><span class="sr-only">5.39 &plusmn; 0.01, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">4</span><span class="results-mean-fraction">.42</span></span><span class="results-sd">&plusmn;0.15</span></span><span class="sr-only">4.42 &plusmn; 0.15, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><b><span class="results-mean-whole">6</span><span class="results-mean-fraction">.20</span></b></span><span class="results-sd">&plusmn;0.10</span></span><span class="sr-only">6.20 &plusmn; 0.10 (best), in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><b><span class="results-mean-whole">11</span><span class="results-mean-fraction">.09</span></b></span><span class="results-sd">&plusmn;0.54</span></span><span class="sr-only">11.09 &plusmn; 0.54 (best), in-domain</span></td>
+              </tr>
+            </tbody>
+            <tbody>
+              <tr class="results-group"><th colspan="11" scope="rowgroup">Ours, head-crop input, fine-tuned (5 sets shared with UniGaze)</th></tr>
+              <tr>
+                <th scope="row">FlexGaze-S<span class="sr-only">, fine-tuned on the 5 sets shared with UniGaze</span></th>
+                <td class="results-params"><span class="results-params-value">21.8M</span></td>
+                <td class="results-preproc">H,K</td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">11</span><span class="results-mean-fraction">.17</span></span><span class="results-sd">&plusmn;0.07</span></span><span class="sr-only">11.17 &plusmn; 0.07, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.98</span></span><span class="results-sd">&plusmn;0.04</span></span><span class="sr-only">5.98 &plusmn; 0.04, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">3</span><span class="results-mean-fraction">.67</span></span><span class="results-sd">&plusmn;0.05</span></span><span class="sr-only">3.67 &plusmn; 0.05, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.54</span></span><span class="results-sd">&plusmn;0.15</span></span><span class="sr-only">5.54 &plusmn; 0.15, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.90</span></span><span class="results-sd">&plusmn;0.06</span></span><span class="sr-only">5.90 &plusmn; 0.06, in-domain</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.54</span></span><span class="results-sd">&plusmn;0.42</span></span><span class="sr-only">5.54 &plusmn; 0.42</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">10</span><span class="results-mean-fraction">.41</span></span><span class="results-sd">&plusmn;0.66</span></span><span class="sr-only">10.41 &plusmn; 0.66</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">17</span><span class="results-mean-fraction">.70</span></span><span class="results-sd">&plusmn;1.10</span></span><span class="sr-only">17.70 &plusmn; 1.10</span></td>
+              </tr>
+              <tr>
+                <th scope="row">FlexGaze-B<span class="sr-only">, fine-tuned on the 5 sets shared with UniGaze</span></th>
+                <td class="results-params"><span class="results-params-value">86.0M</span></td>
+                <td class="results-preproc">H,K</td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><b><span class="results-mean-whole">10</span><span class="results-mean-fraction">.90</span></b></span><span class="results-sd">&plusmn;0.15</span></span><span class="sr-only">10.90 &plusmn; 0.15 (best), in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.30</span></span><span class="results-sd">&plusmn;0.03</span></span><span class="sr-only">5.30 &plusmn; 0.03, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><b><span class="results-mean-whole">3</span><span class="results-mean-fraction">.46</span></b></span><span class="results-sd">&plusmn;0.01</span></span><span class="sr-only">3.46 &plusmn; 0.01 (best), in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">4</span><span class="results-mean-fraction">.93</span></span><span class="results-sd">&plusmn;0.21</span></span><span class="sr-only">4.93 &plusmn; 0.21, in-domain</span></td>
+                <td class="results-score results-in-domain"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">5</span><span class="results-mean-fraction">.33</span></span><span class="results-sd">&plusmn;0.05</span></span><span class="sr-only">5.33 &plusmn; 0.05, in-domain</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">4</span><span class="results-mean-fraction">.52</span></span><span class="results-sd">&plusmn;0.14</span></span><span class="sr-only">4.52 &plusmn; 0.14</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">10</span><span class="results-mean-fraction">.21</span></span><span class="results-sd">&plusmn;0.25</span></span><span class="sr-only">10.21 &plusmn; 0.25</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">14</span><span class="results-mean-fraction">.34</span></span><span class="results-sd">&plusmn;0.61</span></span><span class="sr-only">14.34 &plusmn; 0.61</span></td>
+              </tr>
+            </tbody>
+            <tbody>
+              <tr class="results-group"><th colspan="11" scope="rowgroup">Ours, head-crop input, pretrained (weak labels only)</th></tr>
+              <tr>
+                <th scope="row">FlexGaze-S<span class="sr-only">, pretrained on generated labels only</span></th>
+                <td class="results-params"><span class="results-params-value">21.8M</span></td>
+                <td class="results-preproc">H,K</td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">12</span><span class="results-mean-fraction">.69</span></span><span class="results-sd">&plusmn;0.03</span></span><span class="sr-only">12.69 &plusmn; 0.03</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">12</span><span class="results-mean-fraction">.90</span></span><span class="results-sd">&plusmn;0.07</span></span><span class="sr-only">12.90 &plusmn; 0.07</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">10</span><span class="results-mean-fraction">.59</span></span><span class="results-sd">&plusmn;0.26</span></span><span class="sr-only">10.59 &plusmn; 0.26</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">9</span><span class="results-mean-fraction">.97</span></span><span class="results-sd">&plusmn;0.26</span></span><span class="sr-only">9.97 &plusmn; 0.26</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">8</span><span class="results-mean-fraction">.35</span></span><span class="results-sd">&plusmn;0.27</span></span><span class="sr-only">8.35 &plusmn; 0.27</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">9</span><span class="results-mean-fraction">.32</span></span><span class="results-sd">&plusmn;0.30</span></span><span class="sr-only">9.32 &plusmn; 0.30</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">11</span><span class="results-mean-fraction">.62</span></span><span class="results-sd">&plusmn;0.34</span></span><span class="sr-only">11.62 &plusmn; 0.34</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">12</span><span class="results-mean-fraction">.19</span></span><span class="results-sd">&plusmn;0.15</span></span><span class="sr-only">12.19 &plusmn; 0.15</span></td>
+              </tr>
+              <tr>
+                <th scope="row">FlexGaze-B<span class="sr-only">, pretrained on generated labels only</span></th>
+                <td class="results-params"><span class="results-params-value">86.0M</span></td>
+                <td class="results-preproc">H,K</td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">12</span><span class="results-mean-fraction">.47</span></span><span class="results-sd">&plusmn;0.11</span></span><span class="sr-only">12.47 &plusmn; 0.11</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">13</span><span class="results-mean-fraction">.54</span></span><span class="results-sd">&plusmn;0.16</span></span><span class="sr-only">13.54 &plusmn; 0.16</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">12</span><span class="results-mean-fraction">.28</span></span><span class="results-sd">&plusmn;0.92</span></span><span class="sr-only">12.28 &plusmn; 0.92</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">11</span><span class="results-mean-fraction">.67</span></span><span class="results-sd">&plusmn;0.99</span></span><span class="sr-only">11.67 &plusmn; 0.99</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">8</span><span class="results-mean-fraction">.71</span></span><span class="results-sd">&plusmn;0.16</span></span><span class="sr-only">8.71 &plusmn; 0.16</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">8</span><span class="results-mean-fraction">.00</span></span><span class="results-sd">&plusmn;0.44</span></span><span class="sr-only">8.00 &plusmn; 0.44</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">12</span><span class="results-mean-fraction">.24</span></span><span class="results-sd">&plusmn;0.65</span></span><span class="sr-only">12.24 &plusmn; 0.65</span></td>
+                <td class="results-score"><span class="results-score-block" aria-hidden="true"><span class="results-mean"><span class="results-mean-whole">12</span><span class="results-mean-fraction">.69</span></span><span class="results-sd">&plusmn;0.25</span></span><span class="sr-only">12.69 &plusmn; 0.25</span></td>
+              </tr>
+            </tbody>
+            </table>
+          </div>
+          <dl class="results-notes">
+            <div><dt>Preproc.</dt><dd id="results-note-preproc">Input preparation requirements: H (head box), F (face box), L (facial landmarks), P (head pose), K (camera intrinsics).</dd></div>
+            <div><dt><span class="results-in-domain-swatch">in-domain</span></dt><dd>The model was trained on this dataset.</dd></div>
+          </dl>
+        </div>
+        <figcaption id="results-table-caption">
+          <span class="caption-label">Table 1.</span>
+          Comparison of FlexGaze with publicly available gaze estimators (mean angular error in degrees, lower is better).
+        </figcaption>
+      </figure>
+
+      <h3 class="section-subtitle">Sensitivity to crop scale and center shift</h3>
+      <figure class="section-figure" id="sensitivity">
+        <div class="panel sensitivity-chart">
+          <ul class="sensitivity-legend"></ul>
+          <div class="scroll-x" data-scroll-label="Sensitivity panels, scrollable">
+            <div class="sensitivity-grid">
+              <div class="sensitivity-panel" data-dataset="gaze360" data-family="crop-scale" data-label="(a) Gaze360"></div>
+              <div class="sensitivity-panel" data-dataset="gaze360" data-family="center-shift" data-label="(b) Gaze360"></div>
+              <div class="sensitivity-panel" data-dataset="eth-xgaze" data-family="crop-scale" data-label="(c) ETH-XGaze"></div>
+              <div class="sensitivity-panel" data-dataset="eth-xgaze" data-family="center-shift" data-label="(d) ETH-XGaze"></div>
+            </div>
+          </div>
+          <noscript><p class="sensitivity-message">This chart is drawn with JavaScript.</p></noscript>
+        </div>
+        <figcaption id="sensitivity-caption">
+          <span class="caption-label">Figure 2.</span>
+          Sensitivity to crop scale and center shift. (a,c) Larger ratios indicate tighter crops. (b,d) Center shifts in random directions, with each method's default crop scale fixed. Eye distance is measured between the two eye centers in the image.
+          Across both datasets, FlexGaze-B has flatter error curves overall and maintains lower mean angular errors over the tested ranges of crop scale and center shift. These results indicate that the model tolerates deviations from its default cropping settings.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="section" id="citation" aria-labelledby="citation-title">
+      <div class="section-header">
+        <h2 class="section-title" id="citation-title">Citation</h2>
+        <button class="button button-small citation-copy needs-script" type="button" id="citation-copy" aria-label="Copy BibTeX">Copy BibTeX</button>
+        <span class="sr-only" id="citation-copy-status" role="status" aria-live="polite"></span>
+      </div>
+      <pre class="panel citation-bibtex"><code id="citation-bibtex">@article{li2026flexgaze,
+  title   = {FlexGaze: Weakly Supervised Gaze Estimation at Scale},
+  author  = {Li, Zongjian and Soleymani, Mohammad},
+  journal = {arXiv preprint arXiv:2611.30012},
+  year    = {2026}
+}</code></pre>
+    </section>
+
+  </div>
+</main>
+
+<footer class="page-footer">
+  <div class="column">
+    <p>
+      Image credits for Figure 1.
+      Top row: two photographs from <a href="https://storage.googleapis.com/openimages/web/index.html">Open Images V7</a>,
+      originally from Flickr under <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a> and modified with gaze predictions overlaid:
+      <a href="https://www.flickr.com/photos/aaronpk/16160763161/">&ldquo;capt0095&rdquo;</a> by aaronparecki and
+      <a href="https://www.flickr.com/photos/cafe-lab/4228889656/">&ldquo;Year end party&rdquo;</a> by cafe-lab.
+      Bottom row: the in-the-wild example and the panels derived from it are from a photograph in
+      <a href="http://gazefollow.csail.mit.edu/">GazeFollow</a> (via <a href="https://cocodataset.org/">MS COCO</a>),
+      originally from Flickr under <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>, by
+      <a href="https://www.flickr.com/photo.gne?id=5436505606">jasonparis</a>, cropped and modified with overlaid annotations;
+      the face in the gaze datasets card is from <a href="https://ait.ethz.ch/xgaze">ETH-XGaze</a>.
+    </p>
+  </div>
+</footer>
+
+<script src="assets/js/theme-switch.js"></script>
+<script src="assets/js/citation-copy.js"></script>
+<script src="assets/js/results-table.js"></script>
+<script src="assets/data/sensitivity.js"></script>
+<script src="assets/js/sensitivity-chart.js"></script>
+<script src="assets/js/scroll-regions.js"></script>
+</body>
+</html>
